@@ -3,7 +3,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/components/Card';
 
-export default function AnalyticsPage({ params }: { params: { id: string } }) {
+import { useParams } from 'next/navigation';
+
+export default function AnalyticsPage() {
+  const params = useParams();
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Analytics</h1>

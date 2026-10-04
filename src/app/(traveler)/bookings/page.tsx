@@ -3,20 +3,37 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/components/Card';
 import { Badge } from '@/design-system/components/Badge';
+import { Button } from '@/design-system/components/Button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/design-system/components/Table';
 import { fetchClient } from '@/api/client';
+import { discoveryApi } from '@/api/discover';
 import { BookingRequest } from '@/types/api';
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<BookingRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchClient('/discover/traveler/bookings')
+  const fetchBookings = () => {
+    setLoading(true);
+    discoveryApi.getTravelerBookings()
       .then((res: any) => setBookings(res.data || res))
       .catch(() => setBookings([]))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchBookings();
   }, []);
+
+  const handleCancel = async (bookingId: string) => {
+    try {
+      await discoveryApi.cancelBookingRequest(bookingId);
+      // Refresh the list after cancellation
+      fetchBookings();
+    } catch (error) {
+      console.error('Failed to cancel booking', error);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8">
@@ -43,6 +60,7 @@ export default function BookingsPage() {
                 <TableHead>Date</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -58,6 +76,13 @@ export default function BookingsPage() {
                     }>
                       {b.status}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {b.status === 'REQUESTED' && (
+                      <Button variant="danger" size="sm" onClick={() => handleCancel(b.id)}>
+                        Cancel
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
